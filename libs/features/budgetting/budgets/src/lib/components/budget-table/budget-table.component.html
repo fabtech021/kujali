@@ -1,4 +1,4 @@
-<table mat-table #sort="matSort" [dataSource]="dataSource" multiTemplateDataRows class="mat-elevation-z8" matSort>
+<table mat-table #sort="matSort" [dataSource]="budgets()" multiTemplateDataRows class="mat-elevation-z8" matSort>
 
   <!-- name Column -->
   <ng-container matColumnDef="name">
@@ -53,21 +53,10 @@
           <i class="fas fa-edit fa-sm"></i>
         </button>
 
-        <!-- <button color="primary" class="secondary-action"
-          matTooltip="{{ 'BUDGET.VIEW-RECORD.ACTIONS.SHARE' | transloco }}" mat-mini-fab
-          (click)="openShareBudgetDialog(row)">
-          <i class="fas fa-share-alt fa-sm"></i>
-        </button> -->
-
         <button color="primary" class="delete-btn" matTooltip="Delete" mat-mini-fab
           (click)="openShareBudgetDialog(row)">
           <i class="fas fa-trash-alt fa-sm"></i>
         </button>
-
-        <!-- Will only be true on parent since does not get cascaded down below. -->
-        <!-- <div class="budget-btn-container" style="float: right; text-align: right">
-          <button class="btn-promote" (click)="promote()">{{ 'BUDGET.VIEW-RECORD.PROMOTE' | transloco }}</button>
-        </div> -->
       </div>
     </td>
   </ng-container>
