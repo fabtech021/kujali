@@ -1,14 +1,11 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, computed, signal, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { OrgBudgetsStore, BudgetsStore } from '@app/state/finance/budgetting/budgets';
 import { MatDialog } from '@angular/material/dialog';
-
-import { cloneDeep as ___cloneDeep, flatMap as __flatMap } from 'lodash';
-import { Observable, combineLatest, map, tap } from 'rxjs';
 
 import { Logger } from '@iote/bricks-angular';
 
 import { Budget, BudgetRecord, BudgetStatus, OrgBudgetsOverview } from '@app/model/finance/planning/budgets';
-
-import { BudgetsStore, OrgBudgetsStore } from '@app/state/finance/budgetting/budgets';
 
 import { CreateBudgetModalComponent } from '../../components/create-budget-modal/create-budget-modal.component';
 
@@ -20,36 +17,57 @@ import { CreateBudgetModalComponent } from '../../components/create-budget-modal
               '../../components/budget-view-styles.scss'],
 })
 /** List of all active budgets on the system. */
-export class SelectBudgetPageComponent implements OnInit
+export class SelectBudgetPageComponent
 {
-  /** Overview which contains all budgets of an organisation */
-  overview$!: Observable<OrgBudgetsOverview>;
-  sharedBudgets$: Observable<any[]>;
+  private orgBudgetsStore = inject(OrgBudgetsStore);
+  private budgetsStore = inject(BudgetsStore);
+  private _dialog = inject(MatDialog);
+  private _logger = inject(Logger);
+
+  overview = toSignal(this.orgBudgetsStore.get(), { initialValue: null });
+  sharedBudgets = toSignal(this.budgetsStore.get(), { initialValue: [] });
+  allBudgets = computed(() => {
+    const overview = this.overview();
+    const budgets = this.sharedBudgets();
+    if (!overview || !budgets) return { overview: [], budgets: [] };
+    return {
+      overview: overview.overview,
+      budgets: budgets.map((budget: any) => {
+        budget['endYear'] = budget.startYear + budget.duration - 1;
+        return budget;
+      }),
+    };
+  });
+
+  activeBudgets = computed(() => {
+    const list = this.allBudgets().budgets ?? [];
+    return list.filter(b => !b.archived);
+  });
 
   showFilter = false;
 
   // budgetsLoaded: boolean = false;
 
-  allBudgets$: Observable<{overview: BudgetRecord[], budgets: any[]}>;
+  // allBudgets$: Observable<{overview: BudgetRecord[], budgets: any[]}>;
 
-  constructor(private _orgBudgets$$: OrgBudgetsStore,
-              private _budgets$$: BudgetsStore,
-              private _dialog: MatDialog,
-              private _logger: Logger) 
-  { }
+  // constructor(private _orgBudgets$$: OrgBudgetsStore,
+  //             private _budgets$$: BudgetsStore,
+  //             private _dialog: MatDialog,
+  //             private _logger: Logger) 
+  // { }
 
-  ngOnInit() {
-    this.overview$ = this._orgBudgets$$.get();
-    this.sharedBudgets$ = this._budgets$$.get();
+  // ngOnInit() {
+  //   this.overview$ = this._orgBudgets$$.get();
+  //   this.sharedBudgets$ = this._budgets$$.get();
 
-    this.allBudgets$ = combineLatest([this.overview$, this._budgets$$.get()])
-                      .pipe(map(([overview, budgets]) => {return {overview: __flatMap(overview), budgets: __flatMap(budgets)}}),
-                            map((overview) => {
-                              const trBudgets = overview.budgets.map((budget: any) => {budget['endYear'] = budget.startYear + budget.duration - 1; return budget;})
-                              // this.budgetsLoaded = true;
-                              return {overview: overview.overview, budgets: trBudgets}
-                            }));
-  }
+  //   this.allBudgets$ = combineLatest([this.overview$, this._budgets$$.get()])
+  //                     .pipe(map(([overview, budgets]) => {return {overview: __flatMap(overview), budgets: __flatMap(budgets)}}),
+  //                           map((overview) => {
+  //                             const trBudgets = overview.budgets.map((budget: any) => {budget['endYear'] = budget.startYear + budget.duration - 1; return budget;})
+  //                             // this.budgetsLoaded = true;
+  //                             return {overview: overview.overview, budgets: trBudgets}
+  //                           }));
+  // }
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;

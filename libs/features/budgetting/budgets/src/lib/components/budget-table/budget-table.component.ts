@@ -5,8 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSort } from '@angular/material/sort';
 import { Router } from '@angular/router';
 
-import { SubSink } from 'subsink';
-import { Observable, tap } from 'rxjs';
+import { signal, computed, effect, Signal } from '@angular/core';
 
 import { Budget, BudgetRecord } from '@app/model/finance/planning/budgets';
 
@@ -21,8 +20,6 @@ import { ChildBudgetsModalComponent } from '../../modals/child-budgets-modal/chi
 })
 
 export class BudgetTableComponent {
-
-  private _sbS = new SubSink();
 
   @Input() budgets$: Observable<{overview: BudgetRecord[], budgets: any[]}>;
   @Input() canPromote = false;
